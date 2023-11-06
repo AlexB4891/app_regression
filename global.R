@@ -34,10 +34,11 @@ coef_plot_plus <- function(tidy_tems,
   plot_out <- plot_table %>% 
     ggplot() +
     geom_point(aes(x = term, y = estimate)) +
-    geom_text(aes(x = term, 
+    geom_label(aes(x = term, 
                   y = estimate,
                   label = round(estimate, 3)),
               vjust = -0.5,
+              alpha = 0.8,
               color = "darkblue") +
     geom_linerange(aes(x = term,
                        ymin = conf.low, 
@@ -45,7 +46,8 @@ coef_plot_plus <- function(tidy_tems,
                    color = "darkblue") +
     # coord_flip() +
     theme_light() +
-    theme(axis.title= element_blank(),text = element_text(size = 14)) +
+    theme(axis.title= element_blank(),text = element_text(size = 14),
+          plot.margin = margin(t = 0,r = 2,b = 0.1,l = 2, unit = "cm")) +
     labs(title = title_plot,
          subtitle = subtitle_plot)
   
@@ -105,9 +107,7 @@ extract_broom <- function(tidy_model, glance_model){
                                     pvalues = pvalues,
                                     gof.names = gof.names,
                                     gof = gof,
-                                    gof.decimal = gof.decimal,
-                                    ci.low = ci_low,
-                                    ci.up = ci_up)
+                                    gof.decimal = gof.decimal)
   return(tr_object)
 }
 
@@ -119,11 +119,11 @@ my_grid_template <- grid_template(
     areas = 
       rbind(
         c("sidebar","title","title","title","title","title"),
-        c("sidebar","control","blank1" ,"modelo","blank2" ,"table" ),
+        c("sidebar","control","blank1" ,"modelo_tipo","modelo_design" ,"blank2" ),
         c("sidebar","main" ,"main" ,"main","main","table" ),
         c("sidebar","footer","footer" ,"footer" ,"footer" ,"footer" )),
     cols_width = c("22.5%","15%","5%","15%" ,"17.5%","25%"),
-    rows_height = c("10%","10%", "70", "10%")
+    rows_height = c("5%","5%", "80", "10%")
   ))
 
 

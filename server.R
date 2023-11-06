@@ -84,7 +84,8 @@ function(input, output, session) {
     reg_param() %>% 
       filter(model == ff) %>% 
       coef_plot_plus(title_plot = input$variable,
-                     subtitle_plot = input$grupo)
+                     subtitle_plot = input$grupo,
+                     type = input$modelo_design)
   })
   
   

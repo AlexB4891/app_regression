@@ -20,20 +20,21 @@ semanticPage(
                      choices = choices_variable,
                      selected = "pff_p")  
        ),
-       modelo = tagList(
+       modelo_tipo = 
          multiple_radio(input_id =  "modelo_tipo",
                         label = "Tipo de modelo",
                         choices = names(choices_model),
                         choices_value = choices_model,
                         selected = "satu"),
-         multiple_radio(input_id =  "modelo_design",
+        modelo_design = multiple_radio(input_id =  "modelo_design",
                         label = "Tipo de diseño",
                         choices = names(choices_design),
                         choices_value = choices_design,
-                        selected = "lm")
-       ),
+                        selected = "lm"),
        main = plotOutput("params"),
-       table = verbatimTextOutput("perfor"),
+       table = tagList(
+         h3("Regression output"),
+         verbatimTextOutput("perfor")),
        footer = textOutput(outputId = "texto")
   )
 )
