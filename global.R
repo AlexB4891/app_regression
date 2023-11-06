@@ -111,8 +111,38 @@ extract_broom <- function(tidy_model, glance_model){
   return(tr_object)
 }
 
-# extract_broom(tidy_model = dep_var_pff_p_joint_p %>% 
-#                 filter(model == "Event study saturated with fixed effects"),
-#               glance_model = dep_var_pff_p_joint %>% 
-#                 filter(model == "Event study saturated with fixed effects")) %>% 
-#   screenreg()
+
+# Objetos extra -----------------------------------------------------------
+
+my_grid_template <- grid_template(
+  default = list(
+    areas = 
+      rbind(
+        c("sidebar","title","title","title","title","title"),
+        c("sidebar","control","blank1" ,"modelo","blank2" ,"table" ),
+        c("sidebar","main" ,"main" ,"main","main","table" ),
+        c("sidebar","footer","footer" ,"footer" ,"footer" ,"footer" )),
+    cols_width = c("22.5%","15%","5%","15%" ,"17.5%","25%"),
+    rows_height = c("10%","10%", "70", "10%")
+  ))
+
+
+choices_grupo <- c("T-Maj + T-Min vs C-Maj + C-Min" = "joint",
+                   "T-Maj vs C-Maj" = "majors",
+                   "T-Min vs C-Min" = "minors")
+
+choices_variable <- c("Tax haven participation" = "pff_p",
+                      "Foreign participation" = "ext_p",
+                      "Log amount of assets attributable to TH" = "log_assets_attr_pff",
+                      "Log amount of assets attributable to non TH" = "log_assets_attr_ext",
+                      "Log(CIT liability)" = "log_cit_liability",
+                      "Log(Profits)"  = "log_utility",
+                      "Log(Taxable profits)" = "log_taxable_profits",
+                      "Prominent participation in group" = "prominent",
+                      "Amount of assets atributables in dominant group"  = "log_assets_prominent")
+
+choices_model <- c("Saturarated model" = "satu",
+                   "Fixed effect model" = "fe")
+
+choices_design <- c("Diff-in-diff design" = "lm",
+                    "Event study design"  = "es")

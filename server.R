@@ -1,6 +1,5 @@
 
-
-server <- function(input, output, session) {
+function(input, output, session) {
   
   archivos <- reactiveValues(
     params = "20231024/params/dep_var_pff_p_joint.txt",
@@ -18,8 +17,8 @@ server <- function(input, output, session) {
   
   observeEvent(cambios(),{
     
-    archivos$params <- str_c("20231024/params/dep_var_",input$variable,"_",input$grupo,".txt")
-    archivos$perfor <- str_c("20231024/performance/dep_var_",input$variable,"_",input$grupo,".txt")
+    archivos$params <- str_c("data/params/dep_var_",input$variable,"_",input$grupo,".txt")
+    archivos$perfor <- str_c("data/performance/dep_var_",input$variable,"_",input$grupo,".txt")
     
   })
   
