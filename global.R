@@ -18,7 +18,6 @@ library(gt)
 coef_plot_plus <- function(tidy_tems,
                            title_plot,
                            subtitle_plot,
-                           color = "",
                            type = "lm"){
   
   if(type == "lm"){
@@ -63,6 +62,4 @@ coef_plot_plus <- function(tidy_tems,
   
 }
 
-coef_plot_plus(tidy_tems = dep_var_pff_p_joint %>% 
-                 filter(model == "Event study saturated"),
-               title_plot = "Al",subtitle_plot = "al",type = "es")
+
