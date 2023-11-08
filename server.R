@@ -124,5 +124,12 @@ function(input, output, session) {
     
   })
   
+  output$formula <- renderUI({
+    
+    
+    tags$iframe(here::here("www/example.html"))
+  })
+  
   
 }
+

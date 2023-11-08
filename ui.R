@@ -3,7 +3,7 @@ semanticPage(
   grid(my_grid_template,
        sidebar = tagList(
          h2("Retaining yout tax base"),
-         p("Este es un ejemplo")
+         uiOutput("formula"),
        ),
        title  = h2("Aplicación para revisar los resultados de los modelos D-D"),
        blank1  = div(),
