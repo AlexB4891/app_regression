@@ -26,9 +26,13 @@ coef_plot_plus <- function(tidy_tems,
              term = str_replace(term,":post",":"))
   }else{
     plot_table <- tidy_tems %>% 
-      mutate(term = str_remove_all(term,"^anio_refact|^post"),
-             term = as.numeric(term),
-             term = replace_na(term,2011))
+      mutate(term = str_remove_all(term,"^treatmentTreatment:anio_refact"),
+             term = as.numeric(term)) %>% 
+      filter(!is.na(term)) %>% 
+      bind_rows(tibble(term = 2014,
+                       estimate = 0,
+                       conf.low = 0,
+                       conf.high = 0))
   }
   
   plot_out <- plot_table %>% 
@@ -37,7 +41,7 @@ coef_plot_plus <- function(tidy_tems,
     geom_label(aes(x = term, 
                   y = estimate,
                   label = round(estimate, 3)),
-              vjust = -0.5,
+              vjust = 1,
               alpha = 0.8,
               color = "darkblue") +
     geom_linerange(aes(x = term,
@@ -46,18 +50,21 @@ coef_plot_plus <- function(tidy_tems,
                    color = "darkblue") +
     # coord_flip() +
     theme_light() +
-    theme(axis.title= element_blank(),text = element_text(size = 14),
-          plot.margin = margin(t = 0,r = 2,b = 0.1,l = 2, unit = "cm")) +
+    theme(axis.title= element_blank(),text = element_text(size = 13),
+          plot.margin = margin(t = 0,r = 0,b = 0.1,l = 0, unit = "cm")) +
     labs(title = title_plot,
          subtitle = subtitle_plot)
   
   if(type == "es"){
+    
+    # browser()
+    
     plot_out <- plot_out +
       geom_line(aes(x = term, y = estimate),
                 color = "darkblue") +
       geom_vline(aes(xintercept = 2014.5),linetype = "dashed") +
-      scale_x_continuous(breaks = 2011:2017,
-                         labels = c("(Intercept)",2012:2017))
+      scale_x_continuous(breaks = 2012:2017,
+                         labels = c(2012:2017))
   }
   
   return(plot_out)
