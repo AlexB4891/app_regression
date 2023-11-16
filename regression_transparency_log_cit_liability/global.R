@@ -26,7 +26,8 @@ coef_plot_plus <- function(tidy_tems,
              term = str_replace(term,":post",":"))
   }else{
     plot_table <- tidy_tems %>% 
-      mutate(term = str_remove_all(term,"^treatmentTreatment:anio_refact"),
+      mutate(term = str_extract(term,"[:digit:]{4}.*[:digit:]{4}"),
+             term = str_extract(term,"[:digit:]{4}"),
              term = as.numeric(term)) %>% 
       filter(!is.na(term)) %>% 
       bind_rows(tibble(term = 2014,
@@ -48,7 +49,11 @@ coef_plot_plus <- function(tidy_tems,
                        ymin = conf.low, 
                        ymax = conf.high ),
                    color = "darkblue") +
-    # coord_flip() +
+    geom_line(aes(x = term,
+                  y = estimate),
+              color = "darkblue",
+              alpha = 0.7) +
+    geom_hline(aes(yintercept = 0),linetype = "dashed") +
     theme_light() +
     theme(axis.title= element_blank(),text = element_text(size = 13),
           plot.margin = margin(t = 0,r = 0,b = 0.1,l = 0, unit = "cm")) +
@@ -60,9 +65,12 @@ coef_plot_plus <- function(tidy_tems,
     # browser()
     
     plot_out <- plot_out +
-      geom_line(aes(x = term, y = estimate),
-                color = "darkblue") +
+      geom_line(aes(x = term, 
+                    y = estimate),
+                color = "darkblue",
+                alpha = 0.7) +
       geom_vline(aes(xintercept = 2014.5),linetype = "dashed") +
+      geom_hline(aes(yintercept = 0),linetype = "dashed") +
       scale_x_continuous(breaks = 2012:2017,
                          labels = c(2012:2017))
   }
