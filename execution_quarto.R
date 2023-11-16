@@ -7,7 +7,10 @@ iwalk(.x = choices_variable <- c("Tax haven participation" = "pff_p",
                                  "Log(Profits)"  = "log_utility",
                                  "Log(Taxable profits)" = "log_taxable_profits",
                                  "Prominent participation in group" = "prominent",
-                                 "Amount of assets atributables in dominant group"  = "log_assets_prominent"),
+                                 "Amount of assets atributables in dominant group"  = "log_assets_prominent",
+                                 "Any change in participation declared" = "any_change",
+                                 "CIT declared dummy" = "en_f101",
+                                 "Positive profits" = "positive_profits"),
       .f = ~{
         
         label <- .y

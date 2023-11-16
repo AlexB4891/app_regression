@@ -1,0 +1,34 @@
+Tema: Tablas de regresión para modelos de Diferencias en Diferencias ponderados por activos
+
+Una vez concluida nuestra revisión del conjunto de modelos realizados hemos determinado la necesidad de aplicar regresiones ponderadas para el análisis.
+Regresiones:
+
+    1."Linear model" 
+    2."Linear model with fixed effect" 
+    3."Linear model assets weighted" 
+    4."Linear model assets weighted with fixed effect" 
+    5. "Event study" 
+    6. "Event study with fixed effects"
+    7. "Event study assets weighted" 
+    8. "Event study assets weighted with fixed effects"
+
+Para cada modelo se ha ha ejecutado la prueba de Wald para corregir los errrores estandar de nuestras estimaciones. 
+Asi mismo para cada modelo se ha extraido las siguientes tablas en los directorios señalados:
+
+- Tablas/estimations: contiene los valores de los parametros de las regresiones y sus intervalos de confianza
+- Tablas/performance: contiene los estadisticos de los ajustes de cada modelo
+- Sintaxis/: contiene el script de R para generar todos los modelos
+
+Las regresiones se hicieron sobre las siguientes variables:
+
+- Participación en paraisos fiscales
+- Participación en residencia prominente
+- Participación en paraisos fiscales relativa al 2014
+- Logaritmo de los activos atribuibles a paraisos fiscales
+- Logaritmo de los activos atribuibles a residencias no paraisos
+
+Se realizan las regresiones para los siguientes grupos:
+
+- Empresas con algun tipo de participacion en el extranjero (paraisos y no paraisos)
+- Empresas participacion intensiva en el extranjero (paraisos y no paraisos)
+- Empresas participacion minoritaria en el extranjero (paraisos y no paraisos)

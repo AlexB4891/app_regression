@@ -1,0 +1,26 @@
+---
+title: "Diff-in-Design"
+format: html
+editor: visual
+---
+
+## Model especification:
+
+
+The model follow the next especification:
+
+$$Y_{it} = \beta_0 \times Treatment_{it} + \beta_1 \times Post_{it} + \beta_2 \times Treatment_{it} \times Post_{it} + \epsilon$$
+ Which is implemented in R using:
+ 
+```{r, eval = FALSE}
+
+model <- lm(y ~ post + treatment + post:treatment)
+
+vcov <- vcovCL(model, cluster = c("firm_id"))
+
+coeftest(model,vcov)
+
+```
+ 
+ 
+ 
