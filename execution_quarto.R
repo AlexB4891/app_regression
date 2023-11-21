@@ -1,17 +1,34 @@
+library(tidyverse)
 
-choices_variable <- c("Tax haven participation" = "pff_p",
-                                 "Foreign participation" = "ext_p",
-                                 "Log amount of assets attributable to TH" = "log_assets_attr_pff",
-                                 "Log amount of assets attributable to non TH" = "log_assets_attr_ext",
-                                 "Log(CIT liability)" = "log_cit_liability",
-                                 "Log(Profits)"  = "log_utility",
-                                 "Log(Taxable profits)" = "log_taxable_profits",
-                                 "Prominent participation in group" = "prominent",
-                                 "Amount of assets atributables in dominant group"  = "log_assets_prominent",
-                                 "Any change in participation declared" = "any_change",
-                                 "CIT declared dummy" = "en_f101",
-                                 "Positive profits" = "positive_profits")
-     
+
+# list.files("20231120/params")  %>% 
+#     str_remove("dep_var_") %>% 
+#     str_remove(".txt")  %>% 
+#     str_remove("_joint|_majors|_minors")  %>% 
+#     unique()
+# # 
+
+choices_variable_new <- c("Tax haven participation" = "pff_p",
+                          "Foreign participation" = "ext_p",
+                          "Prominent participation in group" = "prominent",
+                          "Levels assets attributable to tax havens" = "levels_assets_attr_haven",
+                          "Levels assets attributable to tax havens (positive)" = "levels_assets_attr_haven_positive",
+                          "Log assets attributable to tax havens (positive)" = "log_assets_attr_pff",
+                          "Levels assets attributable to non tax havens" = "levels_assets_attr_nonhaven",
+                          "Levels assets attributable to non tax havens (positive)" = "levels_assets_attr_nonhaven_positive",
+                          "Log assets attributable to non tax havens (positive)" = "log_assets_attr_ext",
+                          "Level assets attributable to main group" = "level_assets_attr_main",
+                          "Level assets attributable to main group (positive)" = "level_assets_attr_main_positive",
+                          "Log assets attributable to main group" = "log_assets_prominent",
+                          "Income tax rate" = "tasa_ir",
+                          "Log(CIT liability)" = "log_cit_liability",
+                          "Log(Taxable profits)" = "log_taxable_profits",
+                          "Log(Profits)" = "log_utility",
+                          "Positive profits" = "positive_profits",
+                          "Any change" = "any_change",
+                          "CIT declared dummy" = "en_f101"
+                          )
+   
 
 for (i in 1:length(choices_variable)){ 
         

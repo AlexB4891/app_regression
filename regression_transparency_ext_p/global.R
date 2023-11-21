@@ -25,10 +25,16 @@ coef_plot_plus <- function(tidy_tems,
       mutate(term = str_remove_all(term,"^treatment|^post"),
              term = str_replace(term,":post",":"))
   }else{
+    
+    # browser()
     plot_table <- tidy_tems %>% 
-      mutate(term = str_extract(term,"[:digit:]{4}.*[:digit:]{4}"),
-             term = str_extract(term,"[:digit:]{4}"),
-             term = as.numeric(term)) %>% 
+      filter(str_detect(term,"treatment")) %>% 
+    mutate(
+           term = str_remove_all(term,"i\\(.*\\)"),
+           term = str_remove_all(term,"anio_fiscal::"),
+           term = str_remove_all(term,":treatment"),
+           term = as.numeric(term)) %>% 
+    filter(!is.na(term)) %>% 
       filter(!is.na(term)) %>% 
       bind_rows(tibble(term = 2014,
                        estimate = 0,
@@ -161,3 +167,9 @@ choices_model <- c("Saturarated model" = "satu",
 
 choices_design <- c("Diff-in-diff design" = "lm",
                     "Event study design"  = "es")
+
+
+# coef_plot_plus(model_df,
+#                title_plot  = str_c("Event Study Design: ",params$var_lab),
+#                subtitle_plot  = "Unsaturated model with firm clustered standard errors",
+#                type = "es")
