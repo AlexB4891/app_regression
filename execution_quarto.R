@@ -1,5 +1,5 @@
 
-iwalk(.x = choices_variable <- c("Tax haven participation" = "pff_p",
+choices_variable <- c("Tax haven participation" = "pff_p",
                                  "Foreign participation" = "ext_p",
                                  "Log amount of assets attributable to TH" = "log_assets_attr_pff",
                                  "Log amount of assets attributable to non TH" = "log_assets_attr_ext",
@@ -10,20 +10,8 @@ iwalk(.x = choices_variable <- c("Tax haven participation" = "pff_p",
                                  "Amount of assets atributables in dominant group"  = "log_assets_prominent",
                                  "Any change in participation declared" = "any_change",
                                  "CIT declared dummy" = "en_f101",
-                                 "Positive profits" = "positive_profits"),
-      .f = ~{
-        
-        label <- .y
-        var <- .x
-        
-        dir.create(str_c("regression_transparency_",var))
-        
-        quarto::quarto_render(input = "regression_transparency.qmd",
-                              output_file = str_c("regression_transparency_",var,".html"),
-                              execute_params =  list(var_dep = var,
-                                            var_lab = label))
-        
-      })
+                                 "Positive profits" = "positive_profits")
+     
 
 for (i in 1:length(choices_variable)){ 
         
