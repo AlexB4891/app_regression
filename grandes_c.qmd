@@ -1,0 +1,45 @@
+---
+title: "Grandes contribuyentes"
+format: html
+editor: visual
+---
+
+## Lectura de datos
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(janitor)
+
+gc_df <- read_excel(path = "data/Información de Grandes Contribuyentes.xlsx","CatastroHistórico",skip = 2)
+
+gc_df <- clean_names(gc_df)
+
+names(gc_df)
+```
+
+# Número de empresas por año
+
+```{r}
+clean_table <- gc_df %>% 
+  pivot_longer(-c("ruc","razon_social","direccion_zonal", "provincia","sector","subsector")) %>% 
+  mutate(name = str_remove(name,"ano_"))
+```
+
+Se toma el catastro histórico para mostrar la evolución de este grupo de empresas:
+
+```{r}
+
+clean_table %>% 
+  count(value,name) %>% 
+  filter(value == "SI") %>% 
+  ungroup() %>% 
+  ggplot(aes(x = name, y = n, group = value)) +
+  geom_line() +
+  geom_point() +
+  geom_label(aes(label = n)) +
+  theme_minimal() +
+  labs(x = "Fiscal year",
+       y = "Firms",
+       title = "Firms considered 'Gran contribuyente'")
+```

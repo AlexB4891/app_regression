@@ -8,9 +8,9 @@ library(tidyverse)
 #     unique()
 # # 
 
-choices_variable_new <- c("Tax haven participation" = "pff_p",
+choices_variable <- c("Tax haven participation" = "pff_p",
                           "Foreign participation" = "ext_p",
-                          "Prominent participation in group" = "prominent",
+                          "Prominent participation in main group" = "prominent",
                           "Levels assets attributable to tax havens" = "levels_assets_attr_haven",
                           "Levels assets attributable to tax havens (positive)" = "levels_assets_attr_haven_positive",
                           "Log assets attributable to tax havens (positive)" = "log_assets_attr_pff",
