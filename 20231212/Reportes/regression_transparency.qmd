@@ -1,0 +1,353 @@
+---
+title: "Regession analysis report"
+format: 
+  html:
+    number-sections: true
+    number-depth: 4
+editor: visual
+code-fold: true
+execute: 
+  warning: false
+  message: false
+---
+
+# Environment:
+
+R version:
+
+```{r}
+R.version
+```
+
+Libraries:
+
+```{r}
+library(tidyverse)
+library(fixest)
+library(plm)
+library(broom)
+library(scales)
+library(here)
+```
+
+Data:
+
+```{r}
+firm_table <- read_rds(here("01_DATA/APS/core_sample_assigned.rds"))
+
+firm_table <- firm_table %>% 
+  select(anio_fiscal,
+         identificacion_informante_anon,
+         group_assign,
+         porcentaje_aps_pff,
+         porcentaje_aps_ext) %>% 
+  mutate(across(c(porcentaje_aps_pff,porcentaje_aps_ext),
+                ~.x/100))
+```
+
+# Version 1: (T-Min + T-Maj) Treatment vs (C-Min + C-Maj) Control
+
+## Dependent variable: Tax haven participation
+
+### Level (Tax haven participation)
+
+Data preparation:
+
+```{r}
+
+reg_table <- firm_table %>% 
+  filter(group_assign %in% c("C-Min","C-Maj","T-Min","T-Maj")) %>% 
+  mutate(
+    post = as.numeric(anio_fiscal >= 2015),
+    post = factor(post,levels = c(0,1), labels = c("Pre","Post")),
+    treatment = as_factor(group_assign),
+    treatment = fct_collapse(treatment,
+                             Control = c("C-Min","C-Maj"),
+                             Treatment = c("T-Min","T-Maj")),
+    treatment = fct_relevel(treatment,c("Control","Treatment"))
+  ) %>% 
+  select(
+    pff_p = porcentaje_aps_pff,
+    post,
+    treatment,
+    anio_fiscal,
+    firm_id = identificacion_informante_anon
+  )
+
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+model <- lm(data = reg_table,
+            formula = pff_p ~ treatment + post + treatment:post)
+
+conint <- tidy(model,
+               conf.int = TRUE)
+
+perfor <- glance(model)
+
+coeftest(model)
+```
+
+
+```{r}
+conint %>% 
+  mutate(term = str_remove_all(term,"^treatment|^post"),
+         term = str_replace(term,":post",":")) %>% 
+  ggplot() +
+  geom_point(aes(x = term, y = estimate)) +
+  geom_text(aes(x = term, 
+                y = estimate,
+                label = round(estimate, 3)),
+            vjust = -0.5,
+                 color = "#841CD4") +
+  geom_linerange(aes(x = term,
+                     ymin = conf.low, 
+                     ymax = conf.high ),
+                 color = "#841CD4") +
+  coord_flip() +
+  theme_minimal() +
+  theme(axis.title= element_blank()) +
+  labs(title = "DiD Model with lm() function",
+       subtitle = "pff_p ~ treatment + post + treatment:post")
+
+summary(model)
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = pff_p ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
+
+### Log(Tax haven participation)
+
+Data preparation:
+
+```{r}
+
+reg_table <- reg_table %>% 
+  mutate(lop_pff = log(((pff_p*100) + 1)/100))
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+
+model <- lm(data = reg_table,
+            formula = lop_pff ~ treatment + post + treatment:post)
+
+coefplot(model)
+
+summary(model)
+
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = lop_pff ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
+
+### Relative to 2014 (Tax haven participation)
+
+Data preparation:
+
+```{r}
+reg_2014 <- reg_table %>% 
+  filter(anio_fiscal == 2014) %>% 
+  select(firm_id,
+         pff_2014 = pff_p)
+
+reg_table <-reg_table %>% 
+  left_join(reg_2014) %>% 
+  mutate(pff_rel = if_else(
+    pff_2014 == 0 | is.na(pff_2014), NA_real_, pff_p/pff_2014
+    
+  ))
+
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+
+model <- lm(data = reg_table,
+            formula = pff_rel ~ treatment + post + treatment:post)
+
+coefplot(model)
+
+summary(model)
+
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = pff_rel ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
+
+## Dependent variable: Dominant participation in group
+
+### Level (participation)
+
+Data preparation:
+
+```{r}
+
+reg_table <- firm_table %>% 
+  filter(group_assign %in% c("C-Min","C-Maj","T-Min","T-Maj")) %>% 
+  mutate(
+    post = as.numeric(anio_fiscal >= 2015),
+    post = factor(post,levels = c(0,1), labels = c("Pre","Post")),
+    treatment = as_factor(group_assign),
+    treatment = fct_collapse(treatment,
+                             Control = c("C-Min","C-Maj"),
+                             treatment = c("T-Min","T-Maj")),
+    participation = if_else(
+      treatment == "Control", porcentaje_aps_ext,porcentaje_aps_pff
+    )
+  ) %>% 
+  select(
+    participation,
+    post,
+    treatment,
+    anio_fiscal,
+    firm_id = identificacion_informante_anon
+  )
+
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+
+model <- lm(data = reg_table,
+            formula = participation ~ treatment + post + treatment:post)
+
+coefplot(model)
+
+summary(model)
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = participation ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
+
+### Log(Tax haven participation)
+
+Data preparation:
+
+```{r}
+
+reg_table <- reg_table %>% 
+  mutate(lop_participation = log(((participation*100) + 1)/100))
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+
+model <- lm(data = reg_table,
+            formula = lop_participation ~ treatment + post + treatment:post)
+
+coefplot(model)
+
+summary(model)
+
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = lop_participation ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
+
+### Relative to 2014 (Tax haven participation)
+
+Data preparation:
+
+```{r}
+reg_2014 <- reg_table %>% 
+  filter(anio_fiscal == 2014) %>% 
+  select(firm_id,
+         p_2014 = participation)
+
+reg_table <-reg_table %>% 
+  left_join(reg_2014) %>% 
+  mutate(p_rel = if_else(
+    p_2014 == 0 | is.na(p_2014), NA_real_, lop_participation/p_2014
+    
+  ))
+
+```
+
+#### Model: with no fixed effects:
+
+```{r}
+
+model <- lm(data = reg_table,
+            formula = p_rel ~ treatment + post + treatment:post)
+
+coefplot(model)
+
+summary(model)
+
+```
+
+#### Model: with firm and year fixed effects:
+
+```{r}
+
+fe_model <- feols(data = reg_table,
+                  fml = p_rel ~ treatment + post + treatment:post,
+                  index = c("anio_fiscal","firm_id"))
+
+coefplot(fe_model)
+
+summary(fe_model)
+
+```
