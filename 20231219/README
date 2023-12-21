@@ -1,0 +1,50 @@
+Tema: (Actualización) Análisis de robustez de los resultados de los modelos de event study y diferencias en diferencias
+
+Una vez hallados satisfactorios sobre las hipotesis que plantea la investigación ahora nos proponemos realizar un análisis de robustez comparando nuestros
+resultados con los modelos planteados aplicados a 4 poblaciones adicionales:
+
+
+1. Treatment: Empresas con su mayor participación en los paraisos fiscales del Caribe, Control: Empresas con su mayor participación en Colombia
+2. Treatment: Empresas con su mayor participación en los paraisos fiscales del mundo, Control: Empresas con su mayor participación en Colombia
+3. Treatment: Empresas con su mayor participación en los paraisos fiscales del mundo, Control: Empresas con su mayor participación en América Latina
+4. Empresas con tasa de impuesto a la renta mayor a la establecida por Ley (23% en 2012, 22% en el resto de periodos)
+5. Empresas con tasa de impuesto a la renta entre 0 y la establecida por Ley 
+
+Como en la definición inicial se realizan los siguientes modelos:
+
+    1."Linear model" 
+    2."Linear model with fixed effect" 
+    3."Linear model assets weighted" 
+    4."Linear model assets weighted with fixed effect" 
+    5. "Event study" 
+    6. "Event study with fixed effects"
+    7. "Event study assets weighted" 
+    8. "Event study assets weighted with fixed effects"
+
+Para cada modelo se ha ha ejecutado la prueba de Wald para corregir los errrores estandar de nuestras estimaciones. 
+Asi mismo para cada modelo se ha extraido las siguientes tablas en los directorios señalados:
+
+- Tablas/estimations: contiene los valores de los parametros de las regresiones y sus intervalos de confianza
+- Tablas/performance: contiene los estadisticos de los ajustes de cada modelo
+- Sintaxis/: contiene el script de R para generar todos los modelos
+
+Las regresiones se hicieron sobre las siguientes variables:
+
+- Participación en paraisos fiscales
+- Participación en residencia prominente
+- Participación en paraisos fiscales
+- Participación en paraisos fiscales relativa al 2014
+- Logaritmo/nivel de los activos atribuibles a paraisos fiscales
+- Logaritmo/nivel de los activos atribuibles a residencias no paraisos
+- Logaritmo/nivel de los activos atribuibles al Ecuador
+- Monto activos atribuibles a paraisos fiscales
+- Monto activos atribuibles a residencias no paraisos
+- Cambios en la declaración del APS
+- Declaración del impuesto a la renta
+- Tasas de impuesto a la renta pagada
+
+Se realizan las regresiones para los siguientes grupos:
+
+- Empresas con algun tipo de participacion en el extranjero (paraisos y no paraisos)
+- Empresas participacion intensiva en el extranjero (paraisos y no paraisos)
+- Empresas participacion minoritaria en el extranjero (paraisos y no paraisos)

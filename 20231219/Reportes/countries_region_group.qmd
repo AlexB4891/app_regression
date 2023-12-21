@@ -1,0 +1,513 @@
+---
+title: "Alternative groups from residence of final benefficiary"
+author: "Alex Bajaña"
+format: 
+  html:
+    toc: true
+editor: visual
+code-fold: true
+---
+
+## Selection of firms according their participation in each country
+
+```{r}
+library(tidyverse)
+library(gt)
+library(readxl)
+library(here)
+
+paises <- read_rds(here("aps_empresa_pais_lista_oficial.rds"))
+
+source("generate_dual_plot.R")
+
+
+```
+
+Select the unique countries available in APS Annex:
+
+```{r}
+
+# Unique countries with ID:
+
+paises_unicos <- paises %>% 
+  count(pais_accionista_unico) %>% 
+  rowid_to_column()
+
+```
+
+```{r, eval = FALSE}
+paises_unicos %>%
+  write_tsv("paises_unicos.txt")
+```
+
+Join the region classification:
+
+```{r}
+paises_unicos <- read_excel(path = here("paises_region_match.xlsx")) %>% 
+  select(rowid,latinoamerica,caribe) %>% 
+  inner_join(paises_unicos) %>% 
+  select(-n)
+```
+
+Join the region to the overall database:
+
+```{r}
+
+paises <- paises %>% 
+  select(-rowid, -n) %>% 
+  left_join(paises_unicos)
+```
+
+Table with all variables for modelling:
+
+```{r}
+
+firm_table <- read_rds(here("01_DATA/APS/core_sample_assigned.rds"))
+```
+
+Add to the countries table the core sample assignation to treatment and control groups:
+
+```{r}
+
+paises <- firm_table %>% 
+  distinct(identificacion_informante_anon, group_assign) %>% 
+  left_join(paises)
+
+# rm(firm_table)
+```
+
+Filters to target:
+
+-   Firms in core sample
+
+-   Year 2014 to follow the conditions of the core sample
+
+-   Just countries from latinamerica and the Caribbean countries
+
+-   Drop Ecuadorian participation
+
+```{r}
+paises_2014 <- paises %>% 
+  mutate(pais_accionista_unico = str_trim(pais_accionista_unico, "both")) %>% 
+  filter(anio_fiscal == 2014,
+         pais_accionista_unico != "ECUADOR",
+         group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min")) 
+```
+
+Detect in which country is concentrated the maximum participation by firm:
+
+```{r}
+# Tasks:
+# - Colombia vs the Caribe (check)
+# - Todos los paraisos vs colombia
+# - Todos los paraisos vs america latina
+
+
+
+max_pais <- paises_2014 %>%
+  filter((latinoamerica == 1 | paraiso_fiscal_accionista == "S")) %>% 
+  group_by(identificacion_informante_anon) %>%
+  top_n(n = 1,wt = porcentaje) %>% 
+  distinct(identificacion_informante_anon,.keep_all = T) %>% 
+  ungroup()
+```
+
+Then we look how many firms have more than 50% of participation in any of: 1. Latinamerica 2. The Caribbean tax havens 3. Any other tax haven
+
+We will this firms `Robustness sample`
+
+```{r}
+list(
+  firm_table %>% 
+    filter(anio_fiscal == 2014,
+           group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min")) %>% 
+    count(group_assign,name = "Core sample"),
+  max_pais %>% 
+    count(group_assign,name = "Robustness sample"),
+  max_pais %>% 
+    filter(porcentaje >= 50,
+           str_detect(group_assign,"Maj")) %>%  
+    count(group_assign,name = "Participation >50%"),
+  max_pais %>% filter(dplyr::between(porcentaje,5,49.95),
+                      str_detect(group_assign,"Min")) %>%  
+    count(group_assign,name = "5%< Participation <50%")
+) %>% 
+  reduce(full_join) %>% 
+  rename(Group =  group_assign) %>% 
+  gt() %>% 
+  gt::fmt_missing(missing_text = "--") %>% 
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(columns = everything()))
+
+
+```
+
+
+
+All the Caribbean countries considered as tax haven:
+
+```{r}
+th_c <- max_pais %>% 
+  filter(paraiso_fiscal_accionista == "S",
+         caribe == 1) %>% 
+  group_by(pais_accionista_unico) %>% 
+  summarise(Firms = n_distinct(identificacion_informante_anon)) %>% 
+  arrange(desc(Firms)) 
+# 
+six_th <- th_c %>%
+  pull(pais_accionista_unico)
+
+th_c %>% 
+  gt() %>%  
+  cols_label(pais_accionista_unico = md("**Country (Tax haven)**"),
+             Firms = md("**# firms**"))
+```
+
+All other tax haven not including the Caribbean:
+
+```{r}
+th_c <-  max_pais %>% 
+  filter(paraiso_fiscal_accionista == "S",
+         is.na(caribe)) %>% 
+  group_by(pais_accionista_unico) %>% 
+  summarise(Firms = n_distinct(identificacion_informante_anon)) %>% 
+  arrange(desc(Firms)) 
+
+th_c %>% 
+  gt() %>%  
+  cols_label(pais_accionista_unico = md("**Country (Tax haven)**"),
+             Firms = md("**# firms**"))
+```
+
+Check the top 10 of countries by group:
+
+```{r}
+
+max_pais <- max_pais %>% 
+  mutate(
+    robust_sample = case_when(
+      group_assign %in% c("T-Maj","C-Maj") & porcentaje >= 50 ~ 1,
+      group_assign %in% c("T-Min","C-Min") & dplyr::between(porcentaje,5,50) ~ 1
+    )) %>% 
+  filter(robust_sample == 1) 
+
+max_pais %>% 
+  group_by(group_assign,
+        pais_accionista_unico) %>% 
+  summarise(n = n_distinct(identificacion_informante_anon)) %>% 
+  ungroup %>% 
+  group_by(group_assign) %>% 
+  top_n(n = 10, wt = n) %>% 
+  arrange(group_assign,desc(n)) %>% 
+  mutate(pais_accionista_unico = str_c(pais_accionista_unico,"\n(",n,")")) %>% 
+  select(-n) %>% 
+  mutate(Top = row_number()) %>% 
+  filter(Top <=  10) %>% 
+  pivot_wider(names_from = group_assign,values_from = pais_accionista_unico) %>% 
+  gt() %>% 
+  cols_label(
+    `Top` = md("**Top**"),
+    `C-Min` = md("**C-Min**"),
+    `C-Maj` = md("**C-Maj**"),
+    `T-Min` = md("**T-Min**"),
+    `T-Maj` = md("**T-Maj**")
+  )
+  
+```
+
+For instance, three treatment variables will be created:
+
+1.  All Caribbean countries (Alternative A)
+    1.  **Treatment**: Firms with most participation in the 6 tax haven in the region
+    2.  **Control**: Firms with most participation in Colombia
+2.  All Caribbean countries (Alternative B)
+    1.  **Treatment**: Firms with participation in any tax heaven around the world
+    2.  **Control**: Firms with most participation in Colombia
+3.  All Caribbean countries (Alternative C)
+    1.  **Treatment**: Firms with participation in any tax heaven around the world
+    2.  **Control**: Firms with participation in any country in Latinamerica
+
+```{r}
+max_pais_df <- max_pais %>% 
+  distinct(identificacion_informante_anon,
+           group_assign,
+           pais_accionista_unico,
+           latinoamerica,
+           caribe,
+           paraiso_fiscal_accionista)
+
+max_pais_df <- max_pais_df %>% 
+  ungroup() %>% 
+  mutate(
+    treatment_a = case_when(
+      str_detect(group_assign, "^T") & pais_accionista_unico %in% six_th ~ 1,
+      str_detect(group_assign, "^C") & pais_accionista_unico == "COLOMBIA" ~ 0,
+      TRUE ~ NA_real_
+    ),
+      treatment_b = case_when(
+      str_detect(group_assign, "^T") & paraiso_fiscal_accionista == "S" ~ 1,
+      str_detect(group_assign, "^C") & pais_accionista_unico == "COLOMBIA" ~ 0,
+      TRUE ~ NA_real_
+    ),
+      treatment_c = case_when(
+      str_detect(group_assign, "^T") & paraiso_fiscal_accionista == "S" ~ 1,
+      str_detect(group_assign, "^C") & latinoamerica == 1 ~ 0,
+      TRUE ~ NA_real_
+    )
+  )
+
+```
+
+```{r}
+list(
+  `Core sample` =  firm_table %>% 
+    filter(anio_fiscal == 2014,
+           group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min")) %>% 
+    count(group_assign),
+  `Alternative A` = max_pais_df %>% 
+    filter(!is.na(treatment_a)) %>% 
+    count(group_assign),
+  `Alternative B` = max_pais_df %>% 
+    filter(!is.na(treatment_b)) %>% 
+    count(group_assign),
+  `Alternative C` = max_pais_df %>% 
+    filter(!is.na(treatment_c)) %>% 
+    count(group_assign)
+) %>% 
+  imap(~{
+    nam <- .y
+    .x %>% rename_with(.cols = n, .fn = ~ nam)}) %>% 
+  reduce(inner_join) %>% 
+  gt() %>% 
+  cols_label(group_assign = md("**Group**"),
+`Core sample` = md("**Core sample**"),
+`Alternative A` = md("**Alternative A**"),
+`Alternative B` = md("**Alternative B**"),
+`Alternative C` = md("**Alternative C**"))
+
+
+```
+
+Join the tables:
+
+```{r}
+firm_table <- firm_table %>% 
+  left_join(max_pais_df %>% 
+              select(identificacion_informante_anon,
+                     matches("treatment")))
+```
+
+```{r, eval = TRUE}
+write_rds(firm_table,here("01_DATA/APS/core_sample_assigned_alternatives.rds"))
+```
+
+## Countries and firms counts:
+
+### Regional most used residence (Alternative A)
+    1.  **Treatment**: Firms with most participation in the 6 tax haven in the region
+    2.  **Control**: Firms with most participation in Colombia
+
+```{r}
+max_pais_df %>% 
+  filter(!is.na(treatment_a)) %>% 
+  count(group_assign,
+        pais_accionista_unico,
+        treatment_a) %>% 
+  gt() %>% 
+  cols_label(group_assign = md("**Group**"),
+             pais_accionista_unico = md("**Country**"),
+             treatment_a = md("**Treatment dummy**"),
+             n = md("**Firms**"))
+```
+
+Comparing assets and profits 2014:
+
+```{r}
+generate_plot(table = firm_table,"a")
+```
+
+Comparing the mean and median CIT:
+
+```{r, fig.height=10}
+cit_plot(table = firm_table,"a")
+```
+
+### Regional most used residence (Alternative B)
+    1.  **Treatment**: Firms with participation in any tax heaven around the world
+    2.  **Control**: Firms with most participation in Colombia
+
+```{r}
+max_pais_df %>% 
+  filter(!is.na(treatment_b)) %>% 
+  count(group_assign,
+        pais_accionista_unico,
+        treatment_b) %>% 
+  gt() %>% 
+  cols_label(group_assign = md("**Group**"),
+             pais_accionista_unico = md("**Country**"),
+             treatment_b = md("**Treatment dummy**"),
+             n = md("**Firms**"))
+```
+
+Comparing assets and profits 2014:
+
+```{r}
+generate_plot(table = firm_table,"b")
+```
+
+Comparing the mean and median CIT:
+
+```{r, fig.height=10}
+cit_plot(table = firm_table,"b")
+```
+
+### All Caribbean countries (Alternative C)
+    1.  **Treatment**: Firms with participation in any tax heaven around the world
+    2.  **Control**: Firms with participation in any country in Latinamerica
+
+```{r}
+max_pais_df %>% 
+  filter(!is.na(treatment_c)) %>% 
+  count(group_assign,
+        pais_accionista_unico,
+        treatment_c) %>% 
+  gt() %>% 
+  cols_label(group_assign = md("**Group**"),
+             pais_accionista_unico = md("**Country**"),
+             treatment_c = md("**Treatment dummy**"),
+             n = md("**Firms**"))
+```
+
+Comparing assets and profits 2014:
+
+```{r}
+generate_plot(table = firm_table,"c")
+```
+
+Comparing the mean and median CIT:
+
+```{r, fig.height=10}
+cit_plot(table = firm_table,"c")
+```
+
+# Key value zero check in all period
+
+### All years and core sample
+
+```{r}
+
+firm_table %>% 
+  filter(group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min")) %>% 
+  mutate(
+    across(
+      c(tasa_ir, total_assets,porcentage_nac,porcentage_pff,porcentage_ext),
+      list(zero = ~as.numeric(.x == 0))
+    )
+  ) %>% 
+  group_by(group_assign) %>% 
+  summarise(
+    across(
+      matches("zero"),
+      sum,na.rm =T
+      
+    ),
+    Firms = n()
+  ) %>% 
+  pivot_longer(-group_assign) %>% 
+  pivot_wider(names_from = group_assign,values_from = value) %>% 
+  gt() %>% 
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(columns = everything()))
+
+```
+
+### Alternative A (all years):
+
+```{r}
+
+firm_table %>% 
+  filter(group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min"),
+         !is.na(treatment_a)) %>% 
+  mutate(
+    across(
+      c(tasa_ir, total_assets,porcentage_nac,porcentage_pff,porcentage_ext),
+      list(zero = ~as.numeric(.x == 0))
+    )
+  ) %>% 
+  group_by(group_assign) %>% 
+  summarise(
+    across(
+      matches("zero"),
+      sum,na.rm =T
+      
+    ),
+    Firms = n()
+  ) %>% 
+  pivot_longer(-group_assign) %>% 
+  pivot_wider(names_from = group_assign,values_from = value) %>% 
+  gt() %>% 
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(columns = everything()))
+
+```
+
+
+### Alternative B (all years):
+
+```{r}
+
+firm_table %>% 
+  filter(group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min"),
+         !is.na(treatment_b)) %>% 
+  mutate(
+    across(
+      c(tasa_ir, total_assets,porcentage_nac,porcentage_pff,porcentage_ext),
+      list(zero = ~as.numeric(.x == 0))
+    )
+  ) %>% 
+  group_by(group_assign) %>% 
+  summarise(
+    across(
+      matches("zero"),
+      sum,na.rm =T
+      
+    ),
+    Firms = n()
+  ) %>% 
+  pivot_longer(-group_assign) %>% 
+  pivot_wider(names_from = group_assign,values_from = value) %>% 
+  gt() %>% 
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(columns = everything()))
+
+```
+
+
+### Alternative C (all years):
+
+```{r}
+
+firm_table %>% 
+  filter(group_assign %in% c("T-Maj","T-Min","C-Maj","C-Min"),
+         !is.na(treatment_c)) %>% 
+  mutate(
+    across(
+      c(tasa_ir, total_assets,porcentage_nac,porcentage_pff,porcentage_ext),
+      list(zero = ~as.numeric(.x == 0))
+    )
+  ) %>% 
+  group_by(group_assign) %>% 
+  summarise(
+    across(
+      matches("zero"),
+      sum,na.rm =T
+      
+    ),
+    Firms = n()
+  ) %>% 
+  pivot_longer(-group_assign) %>% 
+  pivot_wider(names_from = group_assign,values_from = value) %>% 
+  gt() %>% 
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(columns = everything()))
+```
