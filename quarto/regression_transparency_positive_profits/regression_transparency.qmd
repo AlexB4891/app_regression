@@ -34,12 +34,12 @@ source("global.R")
 ```{r}
 #| echo: false
 model_df_0 <- read_tsv(here(str_c(
-    "20231219/params/dep_var_",
+    "20240130/params/dep_var_",
     params$var_dep, "_joint.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20231219/performance/dep_var_",
+    "20240130/performance/dep_var_",
     params$var_dep, "_joint.txt"
 )))
 
@@ -586,12 +586,12 @@ coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with
 ```{r}
 #| echo: false
 model_df_0 <- read_tsv(here(str_c(
-    "20231219/params/dep_var_",
+    "20240130/params/dep_var_",
     params$var_dep, "_majors.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20231219/performance/dep_var_",
+    "20240130/performance/dep_var_",
     params$var_dep, "_majors.txt"
 )))
 
@@ -1136,12 +1136,12 @@ coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with
 ```{r}
 #| echo: false
 model_df_0 <- read_tsv(here(str_c(
-    "20231219/params/dep_var_",
+    "20240130/params/dep_var_",
     params$var_dep, "_minors.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20231219/performance/dep_var_",
+    "20240130/performance/dep_var_",
     params$var_dep, "_minors.txt"
 )))
 

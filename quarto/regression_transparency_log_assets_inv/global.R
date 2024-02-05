@@ -36,6 +36,8 @@ coef_plot_plus <- function(tidy_tems,
              )
   }else{
     
+    
+    
     plot_table <- tidy_tems %>% 
       filter(str_detect(term,"treatment")) %>% 
       mutate(
@@ -113,8 +115,8 @@ coef_plot_plus <- function(tidy_tems,
                 alpha = 0.7) +
       geom_vline(aes(xintercept = 2014.5),linetype = "dashed") +
       geom_hline(aes(yintercept = 0),linetype = "dashed") +
-      scale_x_continuous(breaks = 2012:2017,
-                         labels = c(2012:2017))  +
+      scale_x_continuous(breaks = 2010:2019,
+                         labels = c(2010:2019))  +
       theme_light() +
       theme(axis.title= element_blank(),text = element_text(size = 13),
             plot.margin = margin(t = 0,r = 0,b = 0.1,l = 0, unit = "cm"),

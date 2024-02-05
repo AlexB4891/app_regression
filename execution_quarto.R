@@ -10,7 +10,7 @@ library(tidyverse)
 
 choices_variable <- c("Tax haven participation" = "pff_p",
                       "Foreign participation" = "ext_p",
-                      "Domestic participation" = "nac_p",
+                      # "Domestic participation" = "nac_p",
                       "Prominent participation in main group" = "prominent",
                       "Inverse prominent part. in main group" = "inverse_prom",
                       "Levels assets attributable to tax havens" = "levels_assets_attr_haven",
@@ -31,37 +31,81 @@ choices_variable <- c("Tax haven participation" = "pff_p",
                       "Log(Taxable profits)" = "log_taxable_profits",
                       "Log(Profits)" = "log_utility",
                       "Positive profits" = "positive_profits",
-                      "Any change" = "any_change"
-                          )
+                      "APS compliance (%)" = "en_aps",
+                      "MID compliance (%)" = "en_mid",
+                      "Any change" = "any_change",
+                      "Log financial activity (MID Codes 4-7, Non tax havens)" =  "log_mid_finance_ext",
+                      "Log financial activity (MID Codes 4-7, Tax haven)" =  "log_mid_finance_pff",
+                      "Log international activity (All MID codes, Tax haven)" = "log_mid_total_pff",
+                      "Commerce and financial activity (Non tax havens)" = "mid_firm_percent_ext",
+                      "Commerce and financial activity (Tax haven)" = "mid_firm_percent_pff",
+                      "Percent of international activity (Non tax havens)" = "mid_percent_ext",    
+                      "Percent of international  activity (Tax haven)" = "mid_percent_pff")
    
 
-for (i in 1:length(choices_variable)){ 
+presentes <- list.files("20240130/params/",full.names = F) %>% str_remove_all("dep_var_|_joint|_majors|_minors|\\.txt") %>% unique()
+
+for (i in 28:length(choices_variable)){ 
         
         label <- choices_variable[i]
         
-        var <- names(choices_variable)[i]
-        # browser()
-        dir_name <- str_c("quarto/regression_transparency_",label)
+        if(label %in% presentes){
+          
+          var <- names(choices_variable)[i]
+          # browser()
+          dir_name <- str_c("quarto/regression_transparency_",label)
+          
+          dir.create(dir_name)
+          
+          # Cambia el directorio de trabajo a este nuevo directorio
+          setwd(dir_name)
+          
+          file.copy(from = "../../regression_transparency.qmd",
+                    to = "./")
+          
+          file.copy(from = "../../global.R",
+                    to = "./")
+          
+          quarto::quarto_render(input = "regression_transparency.qmd",
+                                output_file = str_c("regression_transparency_",label,".html"),
+                                execute_params =  list(var_dep = label,
+                                                       var_lab = var))
+          
+          # Cambia el directorio de trabajo de nuevo al directorio original después de ejecutar el documento
+          setwd("../..")
+          
+          
+        }
         
-        dir.create(dir_name)
-        
-        # Cambia el directorio de trabajo a este nuevo directorio
-        setwd(dir_name)
-        
-        file.copy(from = "../../regression_transparency.qmd",
-                  to = "./")
-        
-        file.copy(from = "../../global.R",
-                  to = "./")
-        
-        quarto::quarto_render(input = "regression_transparency.qmd",
-                              output_file = str_c("regression_transparency_",var,".html"),
-                              execute_params =  list(var_dep = label,
-                                                     var_lab = var))
-        
-        # Cambia el directorio de trabajo de nuevo al directorio original después de ejecutar el documento
-        setwd("../..")
-        
+       
       }
 
         
+choices_variable <- enframe(choices_variable,name = "label",value = "sri_out")
+
+salidas <- tibble(sri_out = presentes) %>% 
+  mutate(quarto_dir = str_c("quarto/regression_transparency_",sri_out))
+  
+
+carpetas <- tibble(quarto_dir = list.files("quarto/",
+                                           full.names = T,
+                                           recursive = F))
+
+salidas <- salidas %>% 
+  right_join(carpetas) %>% 
+  mutate(archivo = map(quarto_dir,list.files,pattern = "\\.html")) %>% 
+  unnest(archivo) %>% 
+  left_join(choices_variable)
+
+
+salidas %>% 
+  transmute(
+    ruta = str_c(quarto_dir,archivo,sep ="/"),
+    tag = glue::glue(' <option value= "{ruta}">{label}</option>')
+  ) %>% 
+  pull(tag) %>% 
+  str_c(collapse = "\n") %>% 
+  cat()
+
+
+
