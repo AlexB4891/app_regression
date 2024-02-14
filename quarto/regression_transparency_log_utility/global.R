@@ -47,12 +47,11 @@ coef_plot_plus <- function(tidy_tems,
         term = as.numeric(term)) %>% 
       filter(!is.na(term)) %>% 
       filter(!is.na(term)) %>% 
-      bind_rows(tibble(term = rep(2014,6),
-                       estimate = rep(0,6),
-                       conf.low = rep(0,6),
-                       conf.high = rep(0,6),
-                       population  = c("all","cit_more_stat",
-                                       "cit_less_stat","treat_a",
+      bind_rows(tibble(term = rep(2014,5),
+                       estimate = rep(0,5),
+                       conf.low = rep(0,5),
+                       conf.high = rep(0,5),
+                       population  = c("all","cit_m22","treat_a",
                                        "treat_b","treat_c")))
   }
   
@@ -61,16 +60,14 @@ coef_plot_plus <- function(tidy_tems,
   plot_table <- plot_table %>% 
     mutate(population = case_when(
       population == "all" ~ "All firms",
-      population == "cit_more_stat" ~ "CIT >= 22%",
-      population == "cit_m22" ~ "CIT >= 22%",
-      population == "cit_less_stat" ~ "0 < CIT < 22%",
+      population == "cit_m22" ~ "CIT >= Statutory",
       population == "treat_a" ~ "Treatment A",
       population == "treat_b" ~ "Treatment B",
       population == "treat_c" ~ "Treatment C"
     ),
     population = factor(population,
                         levels = c("All firms",
-                                   "CIT >= 22%",
+                                   "CIT >= Statutory",
                                    "Treatment A",
                                    "Treatment B",
                                    "Treatment C"))
@@ -115,8 +112,8 @@ coef_plot_plus <- function(tidy_tems,
                 alpha = 0.7) +
       geom_vline(aes(xintercept = 2014.5),linetype = "dashed") +
       geom_hline(aes(yintercept = 0),linetype = "dashed") +
-      scale_x_continuous(breaks = 2010:2019,
-                         labels = c(2010:2019))  +
+      scale_x_continuous(breaks = 2007:2019,
+                         labels = c(2007:2019))  +
       theme_light() +
       theme(axis.title= element_blank(),text = element_text(size = 13),
             plot.margin = margin(t = 0,r = 0,b = 0.1,l = 0, unit = "cm"),
@@ -223,16 +220,14 @@ make_multi_model <- function(model_df_0,
     map(~.x %>% 
           mutate(population = case_when(
             population == "all" ~ "All firms",
-            population == "cit_m22" ~ "CIT >= 22%",
-            population == "cit_more_stat" ~ "CIT >= 22%",
-            population == "cit_less_stat" ~ "0 < CIT < 22%",
+            population == "cit_m22" ~ "CIT >= Statutory",
             population == "treat_a" ~ "Treatment A",
             population == "treat_b" ~ "Treatment B",
             population == "treat_c" ~ "Treatment C"
           ),
           population = factor(population,
                               levels = c("All firms",
-                                         "CIT >= 22%",
+                                         "CIT >= Statutory",
                                          "Treatment A",
                                          "Treatment B",
                                          "Treatment C"))

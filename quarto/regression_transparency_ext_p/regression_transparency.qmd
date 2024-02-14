@@ -14,8 +14,9 @@ execute:
   warning: false
   message: false
 params:
-  var_dep: "prominent"
-  var_lab: "Prominent"
+  var_dep: "tasa_ir"
+  var_lab: "income tax rate"
+  date: "20240209"
 ---
 
 Libraries:
@@ -34,12 +35,12 @@ source("global.R")
 ```{r}
 #| echo: false
 model_df_0 <- read_tsv(here(str_c(
-    "20240130/params/dep_var_",
+    params$date,"/params/dep_var_",
     params$var_dep, "_joint.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20240130/performance/dep_var_",
+    params$date,"/performance/dep_var_",
     params$var_dep, "_joint.txt"
 )))
 
@@ -532,6 +533,29 @@ Where:
 **Dependent variable:** `r params$var_lab`
 
 ::: panel-tabset
+
+## Plot
+
+```{r, echo=FALSE}
+coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
+               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
+               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
+               type = "lm")
+```
+
+
+## Regression table
+
+```{r, echo=FALSE}
+
+
+make_multi_model(model_df_0,
+                 model_df_0_p,
+                "Linear model assets weighted with fixed effect",
+                 "lm")
+
+```
+
 ## R Code
 
 ```{r, eval=FALSE}
@@ -558,26 +582,8 @@ model_corrected <- coeftest(vcov. = vcov_cl,
 
 ```
 
-## Regression table
-
-```{r, echo=FALSE}
 
 
-make_multi_model(model_df_0,
-                 model_df_0_p,
-                "Linear model assets weighted with fixed effect",
-                 "lm")
-
-```
-
-## Plot
-
-```{r, echo=FALSE}
-coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
-               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
-               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
-               type = "lm")
-```
 :::
 
 
@@ -585,13 +591,14 @@ coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with
 
 ```{r}
 #| echo: false
+
 model_df_0 <- read_tsv(here(str_c(
-    "20240130/params/dep_var_",
+    params$date,"/params/dep_var_",
     params$var_dep, "_majors.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20240130/performance/dep_var_",
+    params$date,"/performance/dep_var_",
     params$var_dep, "_majors.txt"
 )))
 
@@ -1082,6 +1089,31 @@ Where:
 **Dependent variable:** `r params$var_lab`
 
 ::: panel-tabset
+
+## Plot
+
+```{r, echo=FALSE}
+coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
+               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
+               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
+               type = "lm")
+```
+
+
+## Regression table
+
+```{r, echo=FALSE}
+
+
+make_multi_model(model_df_0,
+                 model_df_0_p,
+                "Linear model assets weighted with fixed effect",
+                 "lm")
+
+```
+
+
+
 ## R Code
 
 ```{r, eval=FALSE}
@@ -1108,26 +1140,7 @@ model_corrected <- coeftest(vcov. = vcov_cl,
 
 ```
 
-## Regression table
 
-```{r, echo=FALSE}
-
-
-make_multi_model(model_df_0,
-                 model_df_0_p,
-                "Linear model assets weighted with fixed effect",
-                 "lm")
-
-```
-
-## Plot
-
-```{r, echo=FALSE}
-coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
-               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
-               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
-               type = "lm")
-```
 :::
 
 
@@ -1135,13 +1148,14 @@ coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with
 
 ```{r}
 #| echo: false
+
 model_df_0 <- read_tsv(here(str_c(
-    "20240130/params/dep_var_",
+    params$date,"/params/dep_var_",
     params$var_dep, "_minors.txt"
 )))
 
 model_df_0_p <- read_tsv(here(str_c(
-    "20240130/performance/dep_var_",
+    params$date,"/performance/dep_var_",
     params$var_dep, "_minors.txt"
 )))
 
@@ -1632,6 +1646,29 @@ Where:
 **Dependent variable:** `r params$var_lab`
 
 ::: panel-tabset
+
+## Plot
+
+```{r, echo=FALSE}
+coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
+               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
+               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
+               type = "lm")
+```
+
+## Regression table
+
+```{r, echo=FALSE}
+
+
+make_multi_model(model_df_0,
+                 model_df_0_p,
+                "Linear model assets weighted with fixed effect",
+                 "lm")
+
+```
+
+
 ## R Code
 
 ```{r, eval=FALSE}
@@ -1658,24 +1695,5 @@ model_corrected <- coeftest(vcov. = vcov_cl,
 
 ```
 
-## Regression table
 
-```{r, echo=FALSE}
-
-
-make_multi_model(model_df_0,
-                 model_df_0_p,
-                "Linear model assets weighted with fixed effect",
-                 "lm")
-
-```
-
-## Plot
-
-```{r, echo=FALSE}
-coef_plot_plus(model_df_0 %>% filter(model == "Linear model assets weighted with fixed effect"),
-               title_plot  = str_c("Diff-in-Diff Design (Assets weighted): ",params$var_lab),
-               subtitle_plot  = "Fixed effects model with firm clustered standard errors",
-               type = "lm")
-```
 :::
